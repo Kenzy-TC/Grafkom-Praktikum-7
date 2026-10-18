@@ -242,8 +242,8 @@ function selectPanorama(name) {
 }
 const panoramaLoader = new HDRLoader();
 [
-  ['studio09', '/environment/studio_small_09_1k.hdr', 'Studio Small 09 · softbox studio, CC0 · Poly Haven'],
-  ['studio03', '/environment/studio_small_03_1k.hdr', 'Studio Small 03 · high contrast studio, CC0 · Poly Haven'],
+  ['studio09', './environment/studio_small_09_1k.hdr', 'Studio Small 09 · softbox studio, CC0 · Poly Haven'],
+  ['studio03', './environment/studio_small_03_1k.hdr', 'Studio Small 03 · high contrast studio, CC0 · Poly Haven'],
 ].forEach(([name, url, description]) => {
   panoramaLoader.load(url, (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -489,7 +489,7 @@ let animationActions = [];
 const loader = new GLTFLoader();
 hud.loading.textContent = 'Memuat GLB…';
 loader.load(
-  '/models/model.glb',
+  './models/model.glb',
   (gltf) => {
     importedModel = gltf.scene;
     importedModel.name = 'Imported GLB · Rubber Duck';

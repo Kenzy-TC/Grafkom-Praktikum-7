@@ -71,6 +71,12 @@ npm run dev
 
 Buka URL lokal yang ditampilkan Vite. Jangan membuka `index.html` langsung; module `three` dan addon perlu dilayani oleh Vite.
 
+## Deploy ke GitHub Pages
+
+Setiap push ke branch `main` akan menjalankan build dan menerbitkan folder `dist` melalui GitHub Actions. Aset memakai path relatif agar model GLB, HDRI, CSS, dan JavaScript tetap terbaca di alamat GitHub Pages project site.
+
+Jika ini pertama kali mengaktifkan Pages, buka **Settings → Pages** di repository dan pilih **GitHub Actions** sebagai sumber deploy. Setelah workflow selesai, situs tersedia di `https://kenzy-tc.github.io/Grafkom-Praktikum-7/`.
+
 Build production:
 
 ```bash
@@ -105,7 +111,7 @@ Di PowerShell, gunakan `npm.cmd` jika execution policy memblokir `npm.ps1`.
 
 ## Catatan debugging
 
-- Jika model tidak muncul, periksa keberadaan `public/models/model.glb`, URL `/models/model.glb`, dan pesan Console.
+- Jika model tidak muncul, periksa keberadaan `public/models/model.glb` dan pesan Console.
 - Jika animation tidak bergerak, pastikan GLB menyediakan clip, `AnimationMixer` dan `clipAction()` dibuat, serta `mixer.update(delta)` berjalan di loop.
 - Jika shadow GLB tidak terlihat, cek `renderer.shadowMap.enabled`, `DirectionalLight.castShadow`, dan flag shadow mesh.
 - Jika selection tidak mengenai GLB, pastikan pointer NDC dihitung terhadap canvas dan intersection memakai mode recursive.
