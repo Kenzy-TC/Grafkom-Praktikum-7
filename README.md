@@ -1,4 +1,4 @@
-# Interactive 3D Prototype — Praktikum Grafika Komputer Pertemuan 7
+# Scene Interaktif Three.js — Praktikum Grafika Komputer Pertemuan 7
 
 **Mata kuliah:** EF234504 — Grafika Komputer  
 **Topik:** Three.js Interactive 3D Application  
@@ -7,7 +7,7 @@
 
 ## Deskripsi
 
-Prototype ini mengembangkan scene Three.js menjadi aplikasi 3D interaktif. Scene memperlihatkan hierarchy parent-child, transformasi lokal dan world, material PBR, model GLB bebek, clip animasi runtime, skybox/panorama, refleksi environment, shadow, OrbitControls, pergantian kamera, dan pemilihan objek melalui raycasting.
+Halaman ini dibuat untuk Praktikum Grafika Komputer Pertemuan 7. Isinya mencakup hierarchy parent-child, transformasi lokal dan world, material PBR, model GLB bebek, animasi, skybox/panorama, refleksi environment, shadow, OrbitControls, pergantian kamera, dan pemilihan objek melalui raycasting.
 
 ## Isi scene dan hierarchy
 
@@ -37,7 +37,7 @@ Scene
 
 - Sphere utama memakai `MeshStandardMaterial`; slider Roughness dan Metalness mengubah material secara langsung.
 - Gallery 3 × 3 membandingkan roughness **0.12 / 0.50 / 0.88** dengan metalness **0 / 0.5 / 1**.
-- Hover memberi umpan balik skala sementara. Klik menyimpan selection, memperbesar objek, dan mengisi panel posisi, rotasi, skala, serta material.
+- Hover memberi umpan balik berupa perubahan skala dan emissive. Klik memilih objek, memperbesar tampilannya, lalu mengisi panel posisi, rotasi, skala, serta material.
 - Raycaster menggunakan koordinat pointer NDC dari bounding box canvas dan recursive intersection untuk menemukan root entity GLB.
 - Gerakan pointer di atas 5 piksel dianggap drag, sehingga mengorbit kamera tidak memilih objek.
 - Pergantian Perspective/Orthographic Camera mempertahankan posisi dan target; reset mengembalikan Perspective Camera dan target awal.
@@ -48,16 +48,17 @@ Scene
 - Environment dapat dibandingkan ON/OFF melalui tombol panel atau tombol **E**.
 - Tombol cepat menyediakan Panorama (P), Bloom, Refleksi (E), Reset (R), Clip 1/2/3, dan Solar (S). Refleksi environment dapat tetap aktif saat skybox/panorama dimatikan.
 
-## Challenge
+## Fitur praktikum
 
 1. **PBR Material Gallery:** sembilan sampel memetakan kombinasi roughness dan metalness.
 2. **Camera Switch:** tombol kamera atau **C** berganti Perspective/Orthographic sambil mempertahankan sudut pandang dan target.
 3. **Environment Toggle:** tombol **E** mengaktifkan atau mematikan pencahayaan environment untuk membandingkan respons material metal.
-4. **Selection Rotation:** objek mesh yang dipilih berputar perlahan selama selected.
-5. **Click Animation:** klik bebek menjalankan kembali clip animasi aktif.
-6. **Information Panel:** selection menampilkan posisi, rotasi, skala, dan jenis material.
-7. **Solar System:** Sun, Earth Orbit, Earth, Moon Orbit, dan Moon disusun bertingkat dan bergerak dengan delta time.
-8. **Bloom:** UnrealBloomPass dan emissive dapat diatur dari panel controls.
+4. **Hover Feedback:** objek yang ditunjuk mendapat perubahan skala dan emissive sementara.
+5. **Selection Rotation:** objek mesh yang dipilih berputar perlahan selama selected.
+6. **Click Animation:** klik bebek menjalankan kembali clip animasi aktif.
+7. **Information Panel:** selection menampilkan posisi, rotasi, skala, dan jenis material.
+8. **Solar System:** Sun, Earth Orbit, Earth, Moon Orbit, dan Moon disusun bertingkat dan bergerak dengan delta time.
+9. **Bloom:** UnrealBloomPass dan emissive dapat diatur dari panel controls.
 
 ## Cara menjalankan
 

@@ -378,7 +378,7 @@ pbrSphere.receiveShadow = true;
 scene.add(pbrSphere);
 registerSelectable(pbrSphere, 'PBR Sphere', 'MeshStandardMaterial · PBR');
 
-// Challenge: roughness × metalness gallery (nine comparison samples). ---------
+// Sembilan material untuk membandingkan roughness dan metalness.
 const galleryGroup = new THREE.Group();
 galleryGroup.name = 'PBR Material Gallery';
 const roughnessSamples = [0.12, 0.5, 0.88];
@@ -406,7 +406,7 @@ $('#galleryToggle').addEventListener('click', (event) => {
   updateStats();
 });
 
-// Challenge: nested solar-system pivots demonstrate hierarchy animation. -----
+// Orbit bertingkat untuk memperlihatkan hubungan parent dan child.
 const solarSystem = new THREE.Group();
 solarSystem.name = 'Hierarchical Solar System';
 solarSystem.position.set(0, 0, -6.1);
@@ -630,7 +630,7 @@ function resetScene() {
   updateStats();
 }
 
-// Raycasting, hover and persistent click selection ----------------------------
+// Raycasting, hover, dan pemilihan objek.
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let hoveredObject = null;
@@ -665,10 +665,34 @@ function setVisualScale(root) {
   const factor = root === selectedObject ? 1.12 : root === hoveredObject ? 1.06 : 1;
   root.scale.copy(root.userData.baseScale).multiplyScalar(factor);
 }
+const hoverMaterials = new WeakMap();
+function setHoverEmissive(root, enabled) {
+  if (!root) return;
+  root.traverse((object) => {
+    if (!object.isMesh) return;
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      if (!material?.emissive) continue;
+      if (!hoverMaterials.has(material)) {
+        hoverMaterials.set(material, { color: material.emissive.clone(), intensity: material.emissiveIntensity });
+      }
+      const base = hoverMaterials.get(material);
+      if (enabled) {
+        material.emissive.copy(base.color).add(new THREE.Color(0x263300));
+        material.emissiveIntensity = Math.max(base.intensity, 0.22);
+      } else {
+        material.emissive.copy(base.color);
+        material.emissiveIntensity = base.intensity;
+      }
+    }
+  });
+}
 function changeHover(next) {
   if (hoveredObject === next) return;
   const previous = hoveredObject;
   hoveredObject = next;
+  setHoverEmissive(previous, false);
+  setHoverEmissive(hoveredObject, true);
   setVisualScale(previous);
   setVisualScale(hoveredObject);
   hud.hover.textContent = hoveredObject?.userData.selectLabel || '—';
@@ -739,7 +763,7 @@ renderer.domElement.addEventListener('click', (event) => {
   if (selectedObject && selectedObject !== previous) console.info('Selected object:', selectedObject.name, selectedObject);
 });
 
-// Challenge: selected entity rotates gently while selected. -------------------
+// Objek terpilih berputar perlahan selama tetap dipilih.
 const clock = new THREE.Timer();
 clock.connect(document);
 const frameTimes = [];
