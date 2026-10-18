@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -216,12 +216,10 @@ function createProceduralPanorama() {
   return texture;
 }
 const proceduralPanorama = createProceduralPanorama();
-const proceduralGenerator = new THREE.PMREMGenerator(renderer);
 panoramaAssets.set('procedural', {
   background: proceduralPanorama,
-  environment: proceduralGenerator.fromEquirectangular(proceduralPanorama).texture,
+  environment: proceduralPanorama,
 });
-proceduralGenerator.dispose();
 let selectedPanorama = 'studio09';
 function selectPanorama(name) {
   selectedPanorama = name;
@@ -242,17 +240,14 @@ function selectPanorama(name) {
   if (panoramaEnabled) scene.background = panorama.background;
   $('#panoramaDescription').textContent = panorama.description;
 }
-const panoramaLoader = new RGBELoader();
+const panoramaLoader = new HDRLoader();
 [
   ['studio09', '/environment/studio_small_09_1k.hdr', 'Studio Small 09 · softbox studio, CC0 · Poly Haven'],
   ['studio03', '/environment/studio_small_03_1k.hdr', 'Studio Small 03 · high contrast studio, CC0 · Poly Haven'],
 ].forEach(([name, url, description]) => {
   panoramaLoader.load(url, (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
-    const generator = new THREE.PMREMGenerator(renderer);
-    const environment = generator.fromEquirectangular(texture).texture;
-    generator.dispose();
-    panoramaAssets.set(name, { background: texture, environment, description });
+    panoramaAssets.set(name, { background: texture, environment: texture, description });
     if (name === selectedPanorama) selectPanorama(name);
   }, undefined, (error) => {
     console.warn(`Could not load ${name} panorama.`, error);
@@ -826,7 +821,7 @@ window.addEventListener('beforeunload', () => {
   roomEnvironmentMap.dispose();
   for (const panorama of panoramaAssets.values()) {
     panorama.background.dispose();
-    panorama.environment.dispose();
+    if (panorama.environment !== panorama.background) panorama.environment.dispose();
   }
   renderer.dispose();
 });
