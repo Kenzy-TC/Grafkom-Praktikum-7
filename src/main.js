@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -18,7 +19,7 @@ const hud = {
 
 // Scene, camera, renderer ------------------------------------------------------
 const scene = new THREE.Scene();
-const defaultBackground = new THREE.Color('#090b08');
+const defaultBackground = new THREE.Color('#0b1020');
 scene.background = defaultBackground;
 const initialTarget = new THREE.Vector3(0, 0.75, 0);
 const initialPosition = new THREE.Vector3(8.5, 6.2, 10.5);
@@ -35,7 +36,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1;
 renderer.domElement.setAttribute('aria-label', 'Interactive Three.js scene. Drag to orbit and click objects to select.');
 renderer.domElement.tabIndex = 0;
 mount.append(renderer.domElement);
@@ -70,7 +71,7 @@ attachControls(activeCamera, initialTarget);
 const composer = new EffectComposer(renderer);
 composer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 const renderPass = new RenderPass(scene, activeCamera);
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(mount.clientWidth, mount.clientHeight), 0.35, 0.35, 0.9);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(mount.clientWidth, mount.clientHeight), 0.16, 0.3, 1.05);
 composer.addPass(renderPass);
 composer.addPass(bloomPass);
 
@@ -158,7 +159,7 @@ $('#zoomSpeedControl').addEventListener('input', (event) => {
 
 // Lighting, environment, and ground -------------------------------------------
 // Hemisphere and directional light intensities remain editable from the HUD.
-const keyLight = new THREE.DirectionalLight(0xfff4cb, 3.4);
+const keyLight = new THREE.DirectionalLight(0xfff8ed, 2.5);
 keyLight.position.set(-4, 9, 6);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(2048, 2048);
@@ -178,17 +179,20 @@ let environmentMap = roomEnvironmentMap;
 scene.environment = environmentMap;
 pmremGenerator.dispose();
 let environmentEnabled = true;
-let panoramaEnabled = false;
+let panoramaEnabled = true;
 let panoramaTexture = null;
-new THREE.TextureLoader().load('/environment/environment.jpg', (texture) => {
+new RGBELoader().load('/environment/studio_small_09_1k.hdr', (texture) => {
   texture.mapping = THREE.EquirectangularReflectionMapping;
-  texture.colorSpace = THREE.SRGBColorSpace;
   panoramaTexture = texture;
-  environmentMap = texture;
-  if (environmentEnabled) scene.environment = texture;
+  const generator = new THREE.PMREMGenerator(renderer);
+  environmentMap = generator.fromEquirectangular(texture).texture;
+  generator.dispose();
+  if (environmentEnabled) scene.environment = environmentMap;
   if (panoramaEnabled) scene.background = texture;
+  $('#panoramaState').textContent = panoramaEnabled ? 'ON' : 'OFF';
 }, undefined, (error) => {
-  console.warn('Optional environment panorama could not be loaded; procedural RoomEnvironment remains active.', error);
+  console.warn('Studio HDRI could not be loaded; procedural RoomEnvironment remains active.', error);
+  $('#panoramaState').textContent = 'ERROR';
 });
 function setEnvironment(enabled) {
   environmentEnabled = enabled;
@@ -214,7 +218,7 @@ $('#environmentPreset').addEventListener('change', (event) => {
 });
 scene.environmentIntensity = 1;
 
-const ambientLight = new THREE.HemisphereLight(0xe9edcf, 0x282c1d, 1.15);
+const ambientLight = new THREE.HemisphereLight(0xe9efff, 0x252b38, 0.75);
 ambientLight.name = 'AmbientLight';
 scene.add(ambientLight);
 $('#lightIntensityControl').addEventListener('input', (event) => {
@@ -244,14 +248,14 @@ $('#bloomRadiusControl').addEventListener('input', (event) => {
 
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(22, 17),
-  new THREE.MeshStandardMaterial({ color: 0x171a12, roughness: 0.9, metalness: 0.02 }),
+  new THREE.MeshStandardMaterial({ color: 0x263449, roughness: 0.9, metalness: 0.02 }),
 );
 ground.name = 'Ground';
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.015;
 ground.receiveShadow = true;
 scene.add(ground);
-const grid = new THREE.GridHelper(22, 22, 0x454a1e, 0x272a1b);
+const grid = new THREE.GridHelper(22, 22, 0x64748b, 0x475569);
 grid.position.y = 0.002;
 grid.material.transparent = true;
 grid.material.opacity = 0.22;
@@ -275,7 +279,7 @@ hierarchyGroup.rotation.y = -Math.PI / 9;
 scene.add(hierarchyGroup);
 const parentBody = new THREE.Mesh(
   new THREE.BoxGeometry(1.55, 0.68, 1.05),
-  new THREE.MeshStandardMaterial({ color: 0x8f9e16, roughness: 0.48, metalness: 0.22 }),
+  new THREE.MeshStandardMaterial({ color: 0x4f83a8, roughness: 0.48, metalness: 0.18 }),
 );
 parentBody.name = 'Parent Body';
 parentBody.position.y = 0.78;
@@ -284,7 +288,7 @@ parentBody.receiveShadow = true;
 hierarchyGroup.add(parentBody);
 const childObject = new THREE.Mesh(
   new THREE.BoxGeometry(0.48, 0.48, 0.48),
-  new THREE.MeshStandardMaterial({ color: 0xffa629, roughness: 0.28, metalness: 0.35 }),
+  new THREE.MeshStandardMaterial({ color: 0xe99a4a, roughness: 0.38, metalness: 0.16 }),
 );
 childObject.name = 'Child Object';
 childObject.position.set(0.95, 0.35, 0);
@@ -298,8 +302,8 @@ console.info('Hierarchy transform demo — child local:', childObject.position.c
 registerSelectable(hierarchyGroup, 'Hierarchy Demo', 'Group + MeshStandardMaterial');
 
 const pbrMaterial = new THREE.MeshStandardMaterial({
-  color: 0xe8ff00, roughness: 0.25, metalness: 0.35,
-  emissive: 0x232900, emissiveIntensity: 0.25,
+  color: 0x4f91c5, roughness: 0.3, metalness: 0.28,
+  emissive: 0x071522, emissiveIntensity: 0.12,
 });
 const pbrSphere = new THREE.Mesh(new THREE.SphereGeometry(0.76, 48, 32), pbrMaterial);
 pbrSphere.name = 'PBR Sphere';
@@ -318,7 +322,7 @@ const galleryGeometry = new THREE.SphereGeometry(0.28, 28, 20);
 roughnessSamples.forEach((roughness, row) => {
   metalnessSamples.forEach((metalness, column) => {
     const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color().setHSL(0.17, 0.78, 0.48), roughness, metalness,
+      color: new THREE.Color().setHSL(0.56 + column * 0.055, 0.52, 0.6 - row * 0.035), roughness, metalness,
     });
     const sample = new THREE.Mesh(galleryGeometry, material);
     sample.name = `Gallery R${roughness.toFixed(2)} M${metalness.toFixed(1)}`;

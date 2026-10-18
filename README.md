@@ -34,7 +34,7 @@ Scene
 - `public/models/model.glb` adalah aset demo Astra Beacon yang disertakan di project ini. Model dibuat lokal dengan geometri box low-poly, material metallic, dan hierarchy bertingkat.
 - Animasi **Signal Rotation** memutar node sinyal selama asset dimuat. Klik model untuk memulai ulang clip.
 - Untuk mengganti model dengan asset sendiri, letakkan file bernama `model.glb` di `public/models/`. Loader membaca clip yang tersedia pada GLB.
-- Environment refleksi PBR dibuat saat runtime menggunakan `RoomEnvironment` dan `PMREMGenerator` sebagai fallback. `public/environment/environment.jpg` adalah panorama equirectangular lokal untuk pilihan **Panorama Background**; `scene.background` dapat ditoggle terpisah dari `scene.environment`.
+- Latar dan refleksi PBR memakai HDRI **Studio Small 09** dari Poly Haven (`public/environment/studio_small_09_1k.hdr`). Aset 1K ini berlisensi CC0; [halaman aset dan lisensi](https://polyhaven.com/a/studio_small_09). HDRI diproses menjadi PMREM untuk refleksi, sementara tombol **Panorama Background** mengatur tampilan latarnya. `RoomEnvironment` menjadi fallback jika HDRI gagal dimuat.
 
 ## PBR dan interaksi
 
@@ -98,7 +98,7 @@ Di PowerShell, gunakan `npm.cmd` jika execution policy memblokir `npm.ps1`.
 | Orbit controls | Mengaktifkan kamera, pan, damping, damping factor, rotate speed, dan zoom speed |
 | Lighting | Mengubah intensitas directional dan ambient light |
 | Environment preset | Mengubah kekuatan environment reflection |
-| Panorama Background | Menampilkan/menyembunyikan `public/environment/environment.jpg` sebagai background |
+| Panorama Background | Menampilkan/menyembunyikan HDRI Studio Small 09 sebagai background |
 | Scene Tools | Toggle bloom/gallery/solar system dan replay animasi GLB |
 | Emissive / Bloom | Mengubah intensitas emissive sphere, kekuatan dan radius bloom |
 
@@ -124,7 +124,8 @@ Praktikum 7/
 ├── public/
 │   ├── models/
 │   │   └── model.glb
-│   └── environment/environment.jpg
+│   ├── environment/environment.jpg (fallback lama)
+│   └── environment/studio_small_09_1k.hdr
 ├── src/
 │   ├── main.js
 │   └── style.css

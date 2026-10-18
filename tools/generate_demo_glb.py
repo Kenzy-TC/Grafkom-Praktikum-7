@@ -89,11 +89,11 @@ gltf = {
         "material": 0,
     }]}],
     "materials": [{
-        "name": "Anodized Chartreuse Metal",
+        "name": "Satin Blue Steel",
         "pbrMetallicRoughness": {
-            "baseColorFactor": [0.68, 0.83, 0.08, 1],
-            "metallicFactor": 0.72,
-            "roughnessFactor": 0.29,
+            "baseColorFactor": [0.28, 0.46, 0.58, 1],
+            "metallicFactor": 0.38,
+            "roughnessFactor": 0.38,
         },
     }],
     "animations": [{
