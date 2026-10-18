@@ -225,15 +225,21 @@ proceduralGenerator.dispose();
 let selectedPanorama = 'studio09';
 function selectPanorama(name) {
   selectedPanorama = name;
+  $('#panoramaSelect').value = name;
   const panorama = panoramaAssets.get(name);
   if (!panorama) {
+    const fallback = panoramaAssets.get('procedural');
+    if (fallback && panoramaEnabled) scene.background = fallback.background;
+    if (fallback && environmentEnabled) {
+      environmentMap = fallback.environment;
+      scene.environment = environmentMap;
+    }
     $('#panoramaDescription').textContent = 'Memuat panorama…';
     return;
   }
   environmentMap = panorama.environment;
   if (environmentEnabled) scene.environment = environmentMap;
   if (panoramaEnabled) scene.background = panorama.background;
-  $('#panoramaSelect').value = name;
   $('#panoramaDescription').textContent = panorama.description;
 }
 const panoramaLoader = new RGBELoader();
@@ -254,7 +260,7 @@ const panoramaLoader = new RGBELoader();
   });
 });
 panoramaAssets.get('procedural').description = 'Procedural · studio panorama generated from a canvas texture';
-selectPanorama('procedural');
+selectPanorama('studio09');
 function setEnvironment(enabled) {
   environmentEnabled = enabled;
   scene.environment = enabled ? environmentMap : null;

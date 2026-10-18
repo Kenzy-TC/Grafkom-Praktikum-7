@@ -31,7 +31,7 @@ Scene
 - `public/models/model.glb` adalah model **Rubber Duck** dari CreativeTrio di Poly Pizza, lisensi CC0 / public domain ([sumber aset](https://poly.pizza/m/oH3dEdlDpB)).
 - Model bebek tidak menyertakan clip animasi. Tiga pilihan clip aplikasi (**Float**, **Turn**, dan **Nod**) dibuat melalui `AnimationMixer` saat runtime; tombol 1/2/3 dan klik bebek menjalankan clip.
 - Untuk mengganti model dengan asset sendiri, letakkan file bernama `model.glb` di `public/models/`. Loader membaca clip yang tersedia pada GLB.
-- Pilihan **Skybox / Panorama** berisi panorama procedural, **Studio Small 09**, dan **Studio Small 03**. Dua HDRI 1K Poly Haven berlisensi CC0 ([Studio Small 09](https://polyhaven.com/a/studio_small_09), [Studio Small 03](https://polyhaven.com/a/studio_small_03)); panorama procedural dibuat runtime dengan CanvasTexture. Panorama mengatur `scene.background`, sedangkan tombol Refleksi mengatur `scene.environment`; `RoomEnvironment` menjadi fallback pencahayaan refleksi.
+- Pilihan **Skybox / Panorama** berisi panorama procedural, **Studio Small 09** (pilihan awal), dan **Studio Small 03**. Dua HDRI 1K Poly Haven berlisensi CC0 ([Studio Small 09](https://polyhaven.com/a/studio_small_09), [Studio Small 03](https://polyhaven.com/a/studio_small_03)); panorama procedural dibuat runtime dengan CanvasTexture. Panorama mengatur `scene.background`, sedangkan tombol Refleksi mengatur `scene.environment`; `RoomEnvironment` menjadi fallback pencahayaan refleksi.
 
 ## PBR dan interaksi
 
