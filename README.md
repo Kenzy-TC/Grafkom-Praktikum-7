@@ -7,7 +7,7 @@
 
 ## Deskripsi
 
-Prototype ini mengembangkan scene Three.js menjadi aplikasi 3D interaktif. Scene memperlihatkan hierarchy parent-child, transformasi lokal dan world, material PBR, model GLB beranimasi, environment lighting, shadow, OrbitControls, pergantian kamera, dan pemilihan objek melalui raycasting.
+Prototype ini mengembangkan scene Three.js menjadi aplikasi 3D interaktif. Scene memperlihatkan hierarchy parent-child, transformasi lokal dan world, material PBR, model GLB bebek, clip animasi runtime, skybox/panorama, refleksi environment, shadow, OrbitControls, pergantian kamera, dan pemilihan objek melalui raycasting.
 
 ## Isi scene dan hierarchy
 
@@ -20,21 +20,18 @@ Scene
 │       └── Child Object
 ├── PBR Sphere
 ├── PBR Material Gallery (3 × 3)
-└── Imported GLB · Astra Beacon
-    ├── Beacon Body
-    ├── Beacon Crown
-    └── Rotating Signal
-        └── Signal Bar
+└── Imported GLB · Rubber Duck
+    └── model hierarchy from Poly Pizza
 ```
 
 `Hierarchy Demo Group` ditransform dan berputar, sementara Child Object mempertahankan posisi lokalnya terhadap Parent Body. Panel informasi menunjukkan transform entity terpilih. Demo GLB juga memuat node bertingkat; semua mesh yang ditemukan dengan `traverse()` menerima dan melempar shadow.
 
 ## Aset dan animasi
 
-- `public/models/model.glb` adalah aset demo Astra Beacon yang disertakan di project ini. Model dibuat lokal dengan geometri box low-poly, material metallic, dan hierarchy bertingkat.
-- Animasi **Signal Rotation** memutar node sinyal selama asset dimuat. Klik model untuk memulai ulang clip.
+- `public/models/model.glb` adalah model **Rubber Duck** dari CreativeTrio di Poly Pizza, lisensi CC0 / public domain ([sumber aset](https://poly.pizza/m/oH3dEdlDpB)).
+- Model bebek tidak menyertakan clip animasi. Tiga pilihan clip aplikasi (**Float**, **Turn**, dan **Nod**) dibuat melalui `AnimationMixer` saat runtime; tombol 1/2/3 dan klik bebek menjalankan clip.
 - Untuk mengganti model dengan asset sendiri, letakkan file bernama `model.glb` di `public/models/`. Loader membaca clip yang tersedia pada GLB.
-- Latar dan refleksi PBR memakai HDRI **Studio Small 09** dari Poly Haven (`public/environment/studio_small_09_1k.hdr`). Aset 1K ini berlisensi CC0; [halaman aset dan lisensi](https://polyhaven.com/a/studio_small_09). HDRI diproses menjadi PMREM untuk refleksi, sementara tombol **Panorama Background** mengatur tampilan latarnya. `RoomEnvironment` menjadi fallback jika HDRI gagal dimuat.
+- Pilihan **Skybox / Panorama** berisi panorama procedural, **Studio Small 09**, dan **Studio Small 03**. Dua HDRI 1K Poly Haven berlisensi CC0 ([Studio Small 09](https://polyhaven.com/a/studio_small_09), [Studio Small 03](https://polyhaven.com/a/studio_small_03)); panorama procedural dibuat runtime dengan CanvasTexture. Panorama mengatur `scene.background`, sedangkan tombol Refleksi mengatur `scene.environment`; `RoomEnvironment` menjadi fallback pencahayaan refleksi.
 
 ## PBR dan interaksi
 
@@ -45,19 +42,19 @@ Scene
 - Gerakan pointer di atas 5 piksel dianggap drag, sehingga mengorbit kamera tidak memilih objek.
 - Pergantian Perspective/Orthographic Camera mempertahankan posisi dan target; reset mengembalikan Perspective Camera dan target awal.
 - Panel kamera mengatur pilihan proyeksi, FOV, OrbitControls, pan, damping, kecepatan orbit, dan zoom.
-- Slider lighting mengatur intensitas DirectionalLight/HemisphereLight; preset mengubah kekuatan environment map.
+- Slider lighting mengatur intensitas DirectionalLight/HemisphereLight; slider Reflection Intensity mengubah kekuatan environment map.
 - Bloom dapat diaktifkan dan dikalibrasi dengan slider intensity/radius. Slider emissive mengatur glow sphere PBR.
 - Tombol Gallery menyembunyikan/menampilkan gallery PBR; tombol Solar menampilkan sistem orbit Sun-Earth-Moon berbasis hierarchy.
 - Environment dapat dibandingkan ON/OFF melalui tombol panel atau tombol **E**.
-- Panorama lokal dapat dinyalakan/dimatikan dari tombol **Panorama Background**. Refleksi environment tetap aktif saat background panorama dimatikan.
+- Tombol cepat menyediakan Panorama (P), Bloom, Refleksi (E), Reset (R), Clip 1/2/3, dan Solar (S). Refleksi environment dapat tetap aktif saat skybox/panorama dimatikan.
 
 ## Challenge
 
 1. **PBR Material Gallery:** sembilan sampel memetakan kombinasi roughness dan metalness.
-2. **Camera Switch:** tombol **P** atau tombol kamera berganti Perspective/Orthographic sambil mempertahankan sudut pandang dan target.
+2. **Camera Switch:** tombol kamera atau **C** berganti Perspective/Orthographic sambil mempertahankan sudut pandang dan target.
 3. **Environment Toggle:** tombol **E** mengaktifkan atau mematikan pencahayaan environment untuk membandingkan respons material metal.
 4. **Selection Rotation:** objek mesh yang dipilih berputar perlahan selama selected.
-5. **Click Animation:** klik Astra Beacon menjalankan kembali clip animasinya.
+5. **Click Animation:** klik bebek menjalankan kembali clip animasi aktif.
 6. **Information Panel:** selection menampilkan posisi, rotasi, skala, dan jenis material.
 7. **Solar System:** Sun, Earth Orbit, Earth, Moon Orbit, dan Moon disusun bertingkat dan bergerak dengan delta time.
 8. **Bloom:** UnrealBloomPass dan emissive dapat diatur dari panel controls.
@@ -90,15 +87,18 @@ Di PowerShell, gunakan `npm.cmd` jika execution policy memblokir `npm.ps1`.
 | Scroll | Zoom |
 | Drag kanan | Pan |
 | Klik objek | Pilih / lihat informasi |
-| **P** | Ganti kamera |
+| **P** | Toggle skybox/panorama |
+| **C** | Ganti kamera |
 | **R** | Reset kamera |
-| **E** | Toggle environment |
+| **E** | Toggle refleksi environment |
+| **S** | Toggle solar system |
+| **1 / 2 / 3** | Jalankan clip bebek |
 | Pilihan kamera | Perspective atau Orthographic |
 | Slider FOV | Mengubah sudut pandang Perspective Camera |
 | Orbit controls | Mengaktifkan kamera, pan, damping, damping factor, rotate speed, dan zoom speed |
 | Lighting | Mengubah intensitas directional dan ambient light |
-| Environment preset | Mengubah kekuatan environment reflection |
-| Panorama Background | Menampilkan/menyembunyikan HDRI Studio Small 09 sebagai background |
+| Skybox / Panorama | Memilih panorama procedural, Studio Small 09, atau Studio Small 03 |
+| Refleksi | Menyalakan/mematikan `scene.environment` dan mengubah kekuatan refleksinya |
 | Scene Tools | Toggle bloom/gallery/solar system dan replay animasi GLB |
 | Emissive / Bloom | Mengubah intensitas emissive sphere, kekuatan dan radius bloom |
 
@@ -124,14 +124,12 @@ Praktikum 7/
 ├── public/
 │   ├── models/
 │   │   └── model.glb
-│   ├── environment/environment.jpg (fallback lama)
-│   └── environment/studio_small_09_1k.hdr
+│   └── environment/
+│       ├── studio_small_09_1k.hdr
+│       └── studio_small_03_1k.hdr
 ├── src/
 │   ├── main.js
 │   └── style.css
-├── tools/
-│   ├── generate_demo_glb.py
-│   └── generate_environment.ps1
 ├── README.md
 └── screenshot.png
 README.md

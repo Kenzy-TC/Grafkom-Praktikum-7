@@ -76,11 +76,12 @@
           </section>
 
           <section class="panel-section environment-section">
-            <div class="section-title"><span>05</span><h2>LIGHT / ENVIRONMENT</h2></div>
-            <label class="control-label" for="environmentPreset"><span>ENVIRONMENT PRESET</span></label>
-            <select id="environmentPreset" class="control-select"><option value="1">Studio / Balanced</option><option value="0.65">Studio / Soft</option><option value="1.35">Studio / Bright</option></select>
-            <div class="environment-row"><span>IBL REFLECTION</span><button id="environmentToggle" class="toggle-button is-on" type="button" aria-pressed="true"><span class="toggle-indicator"></span><span id="environmentState">ON</span></button></div>
-            <div class="environment-row"><span>PANORAMA BACKGROUND</span><button id="panoramaToggle" class="toggle-button is-on" type="button" aria-pressed="true"><span class="toggle-indicator"></span><span id="panoramaState">LOADING</span></button></div>
+            <div class="section-title"><span>05</span><h2>SKYBOX / PANORAMA</h2></div>
+            <label class="control-label" for="panoramaSelect"><span>ACTIVE SKYBOX / PANORAMA</span></label>
+            <select id="panoramaSelect" class="control-select"><option value="procedural">Procedural Studio</option><option value="studio09">Studio Small 09 (HDRI)</option><option value="studio03">Studio Small 03 (HDRI)</option></select>
+            <p id="panoramaDescription" class="hint">Procedural panorama generated from a canvas texture</p>
+            <label class="control-label" for="environmentIntensityControl"><span>REFLECTION INTENSITY</span><output id="environmentIntensityValue">1.00</output></label>
+            <input id="environmentIntensityControl" type="range" min="0" max="2" step="0.05" value="1" />
             <label class="control-label" for="lightIntensityControl"><span>DIRECTIONAL LIGHT</span><output id="lightIntensityValue">2.5</output></label>
             <input id="lightIntensityControl" type="range" min="0" max="5" step="0.1" value="2.5" />
             <label class="control-label" for="ambientIntensityControl"><span>AMBIENT LIGHT</span><output id="ambientIntensityValue">0.75</output></label>
@@ -91,10 +92,16 @@
           <section class="panel-section extra-controls">
             <div class="section-title"><span>06</span><h2>SCENE TOOLS</h2></div>
             <div class="button-grid">
+              <button id="panoramaToggle" class="tool-button is-on" type="button" aria-pressed="true">Panorama: <span id="panoramaState">ON (P)</span></button>
               <button id="bloomToggle" class="tool-button is-on" type="button" aria-pressed="true">Bloom: ON</button>
+              <button id="environmentToggle" class="tool-button is-on" type="button" aria-pressed="true">Refleksi: <span id="environmentState">ON (E)</span></button>
+              <button id="actionReset" class="tool-button" type="button">Reset (R)</button>
+              <button id="clipButton1" class="tool-button" type="button" disabled>Clip 1</button>
+              <button id="clipButton2" class="tool-button" type="button" disabled>Clip 2</button>
+              <button id="clipButton3" class="tool-button" type="button" disabled>Clip 3</button>
+              <button id="solarToggle" class="tool-button" type="button" aria-pressed="false">Solar (S)</button>
               <button id="galleryToggle" class="tool-button" type="button" aria-pressed="true">Gallery: ON</button>
               <button id="playAnimation" class="tool-button" type="button">Replay clip</button>
-              <button id="solarToggle" class="tool-button" type="button" aria-pressed="false">Solar: OFF</button>
             </div>
             <label class="control-label" for="emissiveControl"><span>EMISSIVE INTENSITY</span><output id="emissiveValue">0.12</output></label>
             <input id="emissiveControl" type="range" min="0" max="5" step="0.05" value="0.12" />
@@ -108,7 +115,7 @@
         </aside>
 
         <section class="stage" aria-label="Interactive Three.js scene">
-          <div class="stage-heading"><div><span class="eyebrow">LIVE RENDER / SCENE GRAPH</span><h2>Scene Explorer</h2></div><div class="stage-actions"><span class="camera-tag" id="cameraLabel">PERSPECTIVE</span><button id="cameraToggle" class="icon-button" type="button" aria-label="Ganti kamera" title="Ganti kamera (P)">P</button><button id="resetCamera" class="icon-button" type="button" aria-label="Reset kamera" title="Reset kamera (R)">↺</button></div></div>
+          <div class="stage-heading"><div><span class="eyebrow">LIVE RENDER / SCENE GRAPH</span><h2>Scene Explorer</h2></div><div class="stage-actions"><span class="camera-tag" id="cameraLabel">PERSPECTIVE</span><button id="cameraToggle" class="icon-button" type="button" aria-label="Ganti kamera" title="Ganti kamera (C)">P</button><button id="resetCamera" class="icon-button" type="button" aria-label="Reset kamera" title="Reset kamera (R)">↺</button></div></div>
           <div class="canvas-wrapper">
             <div id="canvasMount" class="canvas-mount"></div>
             <div class="scene-corner scene-corner-tl"></div><div class="scene-corner scene-corner-br"></div>

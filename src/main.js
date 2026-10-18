@@ -180,41 +180,105 @@ scene.environment = environmentMap;
 pmremGenerator.dispose();
 let environmentEnabled = true;
 let panoramaEnabled = true;
-let panoramaTexture = null;
-new RGBELoader().load('/environment/studio_small_09_1k.hdr', (texture) => {
+const panoramaAssets = new Map();
+function createProceduralPanorama() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1536;
+  canvas.height = 768;
+  const context = canvas.getContext('2d');
+  const sky = context.createLinearGradient(0, 0, 0, 768);
+  sky.addColorStop(0, '#50677f');
+  sky.addColorStop(0.42, '#aeb8c0');
+  sky.addColorStop(0.52, '#e5ded3');
+  sky.addColorStop(0.53, '#77746f');
+  sky.addColorStop(1, '#383b40');
+  context.fillStyle = sky;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  // Studio wall seams and broad softboxes are drawn directly into this generated panorama.
+  context.strokeStyle = 'rgba(40, 49, 58, 0.22)';
+  context.lineWidth = 5;
+  [160, 480, 1056, 1376].forEach((x) => {
+    context.beginPath(); context.moveTo(x, 0); context.lineTo(x, 405); context.stroke();
+  });
+  [[250, 145], [770, 105], [1290, 165]].forEach(([x, y]) => {
+    const glow = context.createRadialGradient(x, y, 10, x, y, 135);
+    glow.addColorStop(0, 'rgba(255,255,245,0.95)');
+    glow.addColorStop(0.18, 'rgba(255,249,230,0.72)');
+    glow.addColorStop(1, 'rgba(255,249,230,0)');
+    context.fillStyle = glow;
+    context.fillRect(x - 140, y - 140, 280, 280);
+    context.fillStyle = 'rgba(255,255,246,0.72)';
+    context.fillRect(x - 48, y - 24, 96, 48);
+  });
+  const texture = new THREE.CanvasTexture(canvas);
   texture.mapping = THREE.EquirectangularReflectionMapping;
-  panoramaTexture = texture;
-  const generator = new THREE.PMREMGenerator(renderer);
-  environmentMap = generator.fromEquirectangular(texture).texture;
-  generator.dispose();
-  if (environmentEnabled) scene.environment = environmentMap;
-  if (panoramaEnabled) scene.background = texture;
-  $('#panoramaState').textContent = panoramaEnabled ? 'ON' : 'OFF';
-}, undefined, (error) => {
-  console.warn('Studio HDRI could not be loaded; procedural RoomEnvironment remains active.', error);
-  $('#panoramaState').textContent = 'ERROR';
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+const proceduralPanorama = createProceduralPanorama();
+const proceduralGenerator = new THREE.PMREMGenerator(renderer);
+panoramaAssets.set('procedural', {
+  background: proceduralPanorama,
+  environment: proceduralGenerator.fromEquirectangular(proceduralPanorama).texture,
 });
+proceduralGenerator.dispose();
+let selectedPanorama = 'studio09';
+function selectPanorama(name) {
+  selectedPanorama = name;
+  const panorama = panoramaAssets.get(name);
+  if (!panorama) {
+    $('#panoramaDescription').textContent = 'Memuat panorama…';
+    return;
+  }
+  environmentMap = panorama.environment;
+  if (environmentEnabled) scene.environment = environmentMap;
+  if (panoramaEnabled) scene.background = panorama.background;
+  $('#panoramaSelect').value = name;
+  $('#panoramaDescription').textContent = panorama.description;
+}
+const panoramaLoader = new RGBELoader();
+[
+  ['studio09', '/environment/studio_small_09_1k.hdr', 'Studio Small 09 · softbox studio, CC0 · Poly Haven'],
+  ['studio03', '/environment/studio_small_03_1k.hdr', 'Studio Small 03 · high contrast studio, CC0 · Poly Haven'],
+].forEach(([name, url, description]) => {
+  panoramaLoader.load(url, (texture) => {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    const generator = new THREE.PMREMGenerator(renderer);
+    const environment = generator.fromEquirectangular(texture).texture;
+    generator.dispose();
+    panoramaAssets.set(name, { background: texture, environment, description });
+    if (name === selectedPanorama) selectPanorama(name);
+  }, undefined, (error) => {
+    console.warn(`Could not load ${name} panorama.`, error);
+    if (name === selectedPanorama && panoramaAssets.has('procedural')) selectPanorama('procedural');
+  });
+});
+panoramaAssets.get('procedural').description = 'Procedural · studio panorama generated from a canvas texture';
+selectPanorama('procedural');
 function setEnvironment(enabled) {
   environmentEnabled = enabled;
   scene.environment = enabled ? environmentMap : null;
   const button = $('#environmentToggle');
   button.classList.toggle('is-on', enabled);
   button.setAttribute('aria-pressed', String(enabled));
-  $('#environmentState').textContent = enabled ? 'ON' : 'OFF';
+  $('#environmentState').textContent = enabled ? 'ON (E)' : 'OFF (E)';
 }
 $('#environmentToggle').addEventListener('click', () => setEnvironment(!environmentEnabled));
 function setPanorama(enabled) {
   panoramaEnabled = enabled;
-  scene.background = enabled && panoramaTexture ? panoramaTexture : defaultBackground;
+  scene.background = enabled ? (panoramaAssets.get(selectedPanorama)?.background || defaultBackground) : defaultBackground;
   const button = $('#panoramaToggle');
-  const state = enabled && !panoramaTexture ? 'LOADING' : enabled ? 'ON' : 'OFF';
+  const state = enabled ? 'ON (P)' : 'OFF (P)';
   button.classList.toggle('is-on', enabled);
   button.setAttribute('aria-pressed', String(enabled));
   $('#panoramaState').textContent = state;
 }
 $('#panoramaToggle').addEventListener('click', () => setPanorama(!panoramaEnabled));
-$('#environmentPreset').addEventListener('change', (event) => {
+$('#actionReset').addEventListener('click', resetScene);
+$('#panoramaSelect').addEventListener('change', (event) => selectPanorama(event.target.value));
+$('#environmentIntensityControl').addEventListener('input', (event) => {
   scene.environmentIntensity = Number(event.target.value);
+  $('#environmentIntensityValue').textContent = scene.environmentIntensity.toFixed(2);
 });
 scene.environmentIntensity = 1;
 
@@ -396,7 +460,7 @@ $('#solarToggle').addEventListener('click', (event) => {
   solarSystem.visible = !solarSystem.visible;
   event.currentTarget.classList.toggle('is-on', solarSystem.visible);
   event.currentTarget.setAttribute('aria-pressed', String(solarSystem.visible));
-  event.currentTarget.textContent = `Solar: ${solarSystem.visible ? 'ON' : 'OFF'}`;
+  event.currentTarget.textContent = `Solar (S): ${solarSystem.visible ? 'ON' : 'OFF'}`;
   updateStats();
 });
 
@@ -419,15 +483,21 @@ $('#emissiveControl').addEventListener('input', (event) => {
 let importedModel = null;
 let mixer = null;
 let activeAction = null;
+let animationClips = [];
+let animationActions = [];
 const loader = new GLTFLoader();
 hud.loading.textContent = 'Memuat GLB…';
 loader.load(
   '/models/model.glb',
   (gltf) => {
     importedModel = gltf.scene;
-    importedModel.name = 'Imported GLB · Astra Beacon';
-    importedModel.position.set(2.75, 0, 0.2);
-    importedModel.scale.setScalar(1.12);
+    importedModel.name = 'Imported GLB · Rubber Duck';
+    const modelBounds = new THREE.Box3().setFromObject(importedModel);
+    const modelSize = modelBounds.getSize(new THREE.Vector3());
+    const modelCenter = modelBounds.getCenter(new THREE.Vector3());
+    const modelScale = 1.65 / Math.max(modelSize.x, modelSize.y, modelSize.z, 0.001);
+    importedModel.scale.setScalar(modelScale);
+    importedModel.position.set(2.75 - modelCenter.x * modelScale, -modelBounds.min.y * modelScale, 0.2 - modelCenter.z * modelScale);
     importedModel.rotation.y = -0.3;
     importedModel.traverse((object) => {
       if (!object.isMesh) return;
@@ -437,19 +507,27 @@ loader.load(
       else object.material = object.material.clone();
     });
     scene.add(importedModel);
-    registerSelectable(importedModel, 'Astra Beacon · GLB', 'GLTF / PBR');
+    registerSelectable(importedModel, 'Rubber Duck · GLB', 'GLTF / PBR');
 
-    if (gltf.animations.length > 0) {
-      mixer = new THREE.AnimationMixer(importedModel);
-      activeAction = mixer.clipAction(gltf.animations[0]);
-      activeAction.play();
-      hud.animation.textContent = gltf.animations[0].name || 'Clip 0';
-    } else {
-      hud.animation.textContent = 'Tidak ada clip';
+    animationClips = [...gltf.animations];
+    if (animationClips.length === 0) {
+      animationClips = [
+        new THREE.AnimationClip('Float', 1.2, [new THREE.NumberKeyframeTrack('.position[y]', [0, 0.6, 1.2], [importedModel.position.y, importedModel.position.y + 0.14, importedModel.position.y])]),
+        new THREE.AnimationClip('Turn', 1.8, [new THREE.NumberKeyframeTrack('.rotation[y]', [0, 0.9, 1.8], [-0.3, 0.3, -0.3])]),
+        new THREE.AnimationClip('Nod', 0.9, [new THREE.NumberKeyframeTrack('.rotation[z]', [0, 0.45, 0.9], [0, 0.18, 0])]),
+      ];
     }
+    mixer = new THREE.AnimationMixer(importedModel);
+    animationActions = animationClips.slice(0, 3).map((clip) => mixer.clipAction(clip));
+    for (let index = 0; index < 3; index += 1) {
+      const button = $(`#clipButton${index + 1}`);
+      button.disabled = !animationActions[index];
+      if (animationActions[index]) button.addEventListener('click', () => playAnimationClip(index));
+    }
+    playAnimationClip(0);
     let meshCount = 0;
     importedModel.traverse((object) => { if (object.isMesh) meshCount += 1; });
-    console.info(`GLB ready: ${meshCount} mesh(es), ${gltf.animations.length} animation clip(s).`, importedModel);
+    console.info(`GLB ready: ${meshCount} mesh(es), ${gltf.animations.length} embedded clip(s), ${animationActions.length} selectable clip(s).`, importedModel);
     hud.loading.textContent = 'GLB siap';
     updateStats();
   },
@@ -462,16 +540,94 @@ loader.load(
     hud.animation.textContent = 'Aset tidak tersedia';
   },
 );
-function replayModelAnimation() {
-  if (!activeAction) {
-    hud.animation.textContent = 'Tidak ada clip';
+function playAnimationClip(index) {
+  const nextAction = animationActions[index];
+  if (!nextAction) {
+    hud.animation.textContent = 'Clip tidak tersedia';
     return;
   }
-  mixer.stopAllAction();
+  activeAction?.fadeOut(0.12);
+  activeAction = nextAction;
   activeAction.reset().fadeIn(0.18).play();
+  for (let buttonIndex = 0; buttonIndex < 3; buttonIndex += 1) {
+    $(`#clipButton${buttonIndex + 1}`).classList.toggle('is-on', buttonIndex === index);
+  }
   hud.animation.textContent = activeAction.getClip().name || 'Clip aktif';
 }
+function replayModelAnimation() {
+  const index = Math.max(0, animationActions.indexOf(activeAction));
+  playAnimationClip(index);
+}
 $('#playAnimation').addEventListener('click', replayModelAnimation);
+function resetScene() {
+  resetCamera();
+  selectPanorama('procedural');
+  setPanorama(true);
+  setEnvironment(true);
+  scene.environmentIntensity = 1;
+  $('#environmentIntensityControl').value = '1';
+  $('#environmentIntensityValue').textContent = '1.00';
+
+  bloomEnabled = true;
+  bloomPass.enabled = true;
+  bloomPass.strength = 0.16;
+  bloomPass.radius = 0.3;
+  $('#bloomToggle').classList.add('is-on');
+  $('#bloomToggle').setAttribute('aria-pressed', 'true');
+  $('#bloomToggle').textContent = 'Bloom: ON';
+  $('#bloomStrengthControl').value = '0.16';
+  $('#bloomStrengthValue').textContent = '0.16';
+  $('#bloomRadiusControl').value = '0.3';
+  $('#bloomRadiusValue').textContent = '0.30';
+
+  pbrMaterial.roughness = 0.3;
+  pbrMaterial.metalness = 0.28;
+  pbrMaterial.emissiveIntensity = 0.12;
+  $('#roughnessControl').value = '0.3';
+  $('#roughnessValue').textContent = '0.30';
+  $('#metalnessControl').value = '0.28';
+  $('#metalnessValue').textContent = '0.28';
+  $('#emissiveControl').value = '0.12';
+  $('#emissiveValue').textContent = '0.12';
+  keyLight.intensity = 2.5;
+  ambientLight.intensity = 0.75;
+  $('#lightIntensityControl').value = '2.5';
+  $('#lightIntensityValue').textContent = '2.5';
+  $('#ambientIntensityControl').value = '0.75';
+  $('#ambientIntensityValue').textContent = '0.75';
+
+  orbitSettings.enabled = true;
+  orbitSettings.pan = true;
+  orbitSettings.damping = true;
+  orbitSettings.dampingFactor = 0.075;
+  orbitSettings.rotateSpeed = 1;
+  orbitSettings.zoomSpeed = 1;
+  $('#orbitEnabled').checked = true;
+  $('#panEnabled').checked = true;
+  $('#dampingEnabled').checked = true;
+  $('#dampingControl').value = '0.075';
+  $('#dampingValue').textContent = '0.075';
+  $('#rotateSpeedControl').value = '1';
+  $('#rotateSpeedValue').textContent = '1.00×';
+  $('#zoomSpeedControl').value = '1';
+  $('#zoomSpeedValue').textContent = '1.00×';
+  applyOrbitSettings();
+
+  galleryGroup.visible = true;
+  $('#galleryToggle').classList.add('is-on');
+  $('#galleryToggle').setAttribute('aria-pressed', 'true');
+  $('#galleryToggle').textContent = 'Gallery: ON';
+  solarSystem.visible = false;
+  $('#solarToggle').classList.remove('is-on');
+  $('#solarToggle').setAttribute('aria-pressed', 'false');
+  $('#solarToggle').textContent = 'Solar (S)';
+
+  selectedObject = null;
+  changeHover(null);
+  updateSelectionPanel(null);
+  if (animationActions.length) playAnimationClip(0);
+  updateStats();
+}
 
 // Raycasting, hover and persistent click selection ----------------------------
 const raycaster = new THREE.Raycaster();
@@ -648,15 +804,23 @@ animate();
 window.addEventListener('keydown', (event) => {
   const target = event.target;
   if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName))) return;
-  if (event.code === 'KeyP') switchCamera();
-  if (event.code === 'KeyR') resetCamera();
+  if (event.code === 'KeyP') setPanorama(!panoramaEnabled);
+  if (event.code === 'KeyC') switchCamera();
+  if (event.code === 'KeyR') resetScene();
   if (event.code === 'KeyE') setEnvironment(!environmentEnabled);
+  if (event.code === 'KeyS') $('#solarToggle').click();
+  if (event.code === 'Digit1') playAnimationClip(0);
+  if (event.code === 'Digit2') playAnimationClip(1);
+  if (event.code === 'Digit3') playAnimationClip(2);
 });
 
 window.addEventListener('beforeunload', () => {
   controls?.dispose();
   resizeObserver.disconnect();
   roomEnvironmentMap.dispose();
-  panoramaTexture?.dispose();
+  for (const panorama of panoramaAssets.values()) {
+    panorama.background.dispose();
+    panorama.environment.dispose();
+  }
   renderer.dispose();
 });
